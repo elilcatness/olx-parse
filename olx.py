@@ -67,7 +67,7 @@ class Application:
         doc = html.fromstring(response.text)
         links = doc.xpath('//h3[@class="lheight22 margintop5"]/a/@href')
         options = ChromeOptions()
-        # options.add_argument('--headless')
+        options.add_argument('--headless')
         driver = Chrome(executable_path=os.path.join('.', 'chromedriver.exe'),
                         options=options)
         for link in links:
