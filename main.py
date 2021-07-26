@@ -1,4 +1,4 @@
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 import time
 
@@ -46,5 +46,5 @@ def main():
 
 
 if __name__ == '__main__':
-    load_dotenv()
+    # load_dotenv()
     main()
