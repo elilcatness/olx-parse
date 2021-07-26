@@ -7,8 +7,12 @@ from lxml import html
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver import Chrome, ChromeOptions
 
+from data.exceptions import LoadTimeoutExpired
+
 
 class Application:
+    load_timeout: int = 5
+
     def __init__(self, urls, filename='output.csv'):
         self.urls = urls
         self.filename = filename
@@ -36,28 +40,34 @@ class Application:
             pass
         else:
             cookie_btn.click()
-        try:
-            output = {'Раздел': driver.find_elements_by_xpath(
-                '//li[@data-testid="breadcrumb-item"]')[-1].text}
-            timeout = 5
-        except IndexError:
-            print(driver.find_element_by_tag_name('body').get_attribute('outerHTML'))
+        output = {'Раздел': driver.find_elements_by_xpath(
+            '//li[@data-testid="breadcrumb-item"]')[-1].text}
         try:
             phone_show_btn = driver.find_element_by_xpath('//button[@data-testid="show-phone"]')
             phone_show_btn.click()
-            time.sleep(timeout)
-            phone = ','.join(filter(lambda p: p,
-                                    [self.validate_phone(ph.text) for ph in driver.find_elements_by_xpath(
-                                        '//li[@class="css-1petlhy-Text eu5v0x0"]')]))
-        except NoSuchElementException:
-            try:
-                time.sleep(timeout)
-                phone_show_btn = driver.find_element_by_xpath('//button[@data-cy="ad-contact-phone"]')
-                phone_show_btn.click()
-                time.sleep(timeout)
-                phone = self.validate_phone(phone_show_btn.text)
-            except NoSuchElementException:
-                return None
+            start_time = time.time()
+            while True:
+                try:
+                    phone = ','.join(
+                        filter(lambda p: p,
+                               [self.validate_phone(ph.text) for ph in driver.find_elements_by_xpath(
+                                   '//li[@class="css-1petlhy-Text eu5v0x0"]')]))
+                    break
+                except NoSuchElementException:
+                    if time.time() - start_time > self.load_timeout:
+                        raise LoadTimeoutExpired
+        except LoadTimeoutExpired:
+            start_time = time.time()
+            while True:
+                try:
+                    phone_show_btn = driver.find_element_by_xpath('//button[@data-cy="ad-contact-phone"]')
+                    phone_show_btn.click()
+                    phone = self.validate_phone(phone_show_btn.text)
+                    break
+                except NoSuchElementException:
+                    if time.time() - start_time > self.load_timeout:
+                        print(f'Failed to parse {url}')
+                        return None
         if not phone:
             return None
         output['Номер телефона'] = phone
@@ -124,9 +134,9 @@ class Application:
             #         writer.writerow(row)
             pages_per_process = 5
             tasks = [{'url': url, 'from': p, 'to': p + pages_per_process if p + pages_per_process <= pages
-                      else p + (pages - p), 'params': params}
+            else p + (pages - p), 'params': params}
                      for p in range(2, pages + 1
-                                    if pages / pages_per_process > pages // pages_per_process
-                                    else pages, pages_per_process)]
+                if pages / pages_per_process > pages // pages_per_process
+                else pages, pages_per_process)]
             pool = Pool(processes=len(tasks))
             pool.map(self.process, tasks)
