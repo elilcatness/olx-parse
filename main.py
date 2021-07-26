@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import os
 import time
 
@@ -34,7 +35,7 @@ def start(update: Update, context: CallbackContext):
     context.user_data['message'] = message
     context.user_data['max_count'] = message.text.count('.')
     context.user_data['count'] = 1
-    context.job_queue.run_repeating(edit_message, 0.5, 0, context=context, name=str(chat_id))
+    context.job_queue.run_repeating(edit_message, 1, 0, context=context, name=str(chat_id))
 
 
 def main():
@@ -45,4 +46,5 @@ def main():
 
 
 if __name__ == '__main__':
+    load_dotenv()
     main()
