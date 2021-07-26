@@ -44,7 +44,7 @@ class Application:
             output = {'Раздел': driver.find_elements_by_xpath(
                 '//li[@data-testid="breadcrumb-item"]')[-1].text}
         except IndexError:
-            print('Failed to parse section on %s' % url)
+            print('Failed to parse section on %s' % url, print(driver.find_element_by_tag_name('body').get_attribute('outerHTML')))
             return None
         try:
             phone_show_btn = driver.find_element_by_xpath('//button[@data-testid="show-phone"]')
