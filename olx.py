@@ -70,7 +70,7 @@ class Application:
         options.add_argument('--disable-gpu')
         options.add_argument('--no-sandbox')
         driver = Chrome(options=options)
-        for link in links:h
+        for link in links:
             info = self.parse_product(driver, link)
             if info:
                 yield info
