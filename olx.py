@@ -5,7 +5,7 @@ from multiprocessing.dummy import Pool
 import requests
 from lxml import html
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver import PhantomJS
+from selenium.webdriver import Chrome, ChromeOptions
 
 
 class Application:
@@ -28,7 +28,7 @@ class Application:
             self.phones.append(phone)
             return phone
 
-    def parse_product(self, driver: PhantomJS, url):
+    def parse_product(self, driver: Chrome, url):
         driver.get(url)
         try:
             cookie_btn = driver.find_element_by_xpath('//button[@data-cy="dismiss-cookies-overlay"]')
@@ -65,7 +65,11 @@ class Application:
     def parse_page(self, response):
         doc = html.fromstring(response.text)
         links = doc.xpath('//h3[@class="lheight22 margintop5"]/a/@href')
-        driver = PhantomJS()
+        options = ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
+        driver = Chrome()
         for link in links:
             info = self.parse_product(driver, link)
             if info:
