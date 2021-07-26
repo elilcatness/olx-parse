@@ -1,4 +1,3 @@
-import os
 import time
 from csv import DictWriter
 from multiprocessing.dummy import Pool
@@ -6,7 +5,7 @@ from multiprocessing.dummy import Pool
 import requests
 from lxml import html
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver import Chrome, ChromeOptions
+from selenium.webdriver import PhantomJS
 
 
 class Application:
@@ -29,7 +28,7 @@ class Application:
             self.phones.append(phone)
             return phone
 
-    def parse_product(self, driver: Chrome, url):
+    def parse_product(self, driver: PhantomJS, url):
         driver.get(url)
         try:
             cookie_btn = driver.find_element_by_xpath('//button[@data-cy="dismiss-cookies-overlay"]')
@@ -66,16 +65,13 @@ class Application:
     def parse_page(self, response):
         doc = html.fromstring(response.text)
         links = doc.xpath('//h3[@class="lheight22 margintop5"]/a/@href')
-        options = ChromeOptions()
-        options.add_argument('--headless')
-        driver = Chrome(executable_path=os.path.join('data', 'plugins', 'chromedriver.exe'),
-                        options=options)
+        driver = PhantomJS()
         for link in links:
             info = self.parse_product(driver, link)
             if info:
                 yield info
         print()
-        driver.close()
+        driver.quit()
 
     @staticmethod
     def get_last_page(text):
