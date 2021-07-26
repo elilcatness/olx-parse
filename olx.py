@@ -1,3 +1,4 @@
+import os
 import time
 from csv import DictWriter
 from multiprocessing.dummy import Pool
@@ -67,7 +68,8 @@ class Application:
         links = doc.xpath('//h3[@class="lheight22 margintop5"]/a/@href')
         options = ChromeOptions()
         # options.add_argument('--headless')
-        driver = Chrome(options=options)
+        driver = Chrome(executable_path=os.path.join('.', 'chromedriver.exe'),
+                        options=options)
         for link in links:
             info = self.parse_product(driver, link)
             if info:
