@@ -40,8 +40,12 @@ class Application:
             pass
         else:
             cookie_btn.click()
-        output = {'Раздел': driver.find_elements_by_xpath(
-            '//li[@data-testid="breadcrumb-item"]')[-1].text}
+        try:
+            output = {'Раздел': driver.find_elements_by_xpath(
+                '//li[@data-testid="breadcrumb-item"]')[-1].text}
+        except IndexError:
+            print('Failed to parse section on %s' % url)
+            return None
         try:
             phone_show_btn = driver.find_element_by_xpath('//button[@data-testid="show-phone"]')
             phone_show_btn.click()
