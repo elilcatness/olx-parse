@@ -40,21 +40,21 @@ class Application:
             pass
         else:
             cookie_btn.click()
-        try:
-            output = {'Раздел': driver.find_elements_by_xpath(
-                '//li[@data-testid="breadcrumb-item"]')[-1].text}
-        except IndexError:
-            print(driver.find_element_by_tag_name('body').get_attribute('outerHTML'))
+        output = {'Раздел': driver.find_elements_by_xpath(
+            '//li[@data-testid="breadcrumb-item"]')[-1].get_attribute('href')}
         try:
             phone_show_btn = driver.find_element_by_xpath('//button[@data-testid="show-phone"]')
             phone_show_btn.click()
             start_time = time.time()
             while True:
                 try:
+                    phone_section = driver.find_elements_by_xpath('//ul[@class="css-1478ixo"]'
+                                                                  '/li[@class="css-1petlhy-Text eu5v0x0"]')
+                    if not phone_section:
+                        raise NoSuchElementException
                     phone = ','.join(
                         filter(lambda p: p,
-                               [self.validate_phone(ph.text) for ph in driver.find_elements_by_xpath(
-                                   '//li[@class="css-1petlhy-Text eu5v0x0"]')]))
+                               [self.validate_phone(ph.text) for ph in phone_section]))
                     break
                 except NoSuchElementException:
                     if time.time() - start_time > self.load_timeout:
@@ -128,18 +128,14 @@ class Application:
                 pages = int(doc.xpath('//a[@data-cy="page-link-last"]/span/text()')[0])
             except (IndexError, ValueError):
                 return f'Failed to get last page of {url}'
-            with open('output.csv', 'w', encoding='utf-8', newline='') as csv_file:
+            with open(self.filename, 'w', encoding='utf-8', newline='') as csv_file:
                 writer = DictWriter(csv_file, fieldnames=self.fieldnames, delimiter=self.delimiter)
                 writer.writeheader()
-            # for row in parse_page(response):
-            #     with open('output.csv', 'a', encoding='utf-8', newline='') as csv_file:
-            #         writer = DictWriter(csv_file, fieldnames=fieldnames, delimiter=';')
-            #         writer.writerow(row)
             pages_per_process = 5
             tasks = [{'url': url, 'from': p, 'to': p + pages_per_process if p + pages_per_process <= pages
-            else p + (pages - p), 'params': params}
-                     for p in range(2, pages + 1
-                if pages / pages_per_process > pages // pages_per_process
-                else pages, pages_per_process)]
+                      else p + (pages - p), 'params': params}
+                     for p in range(1, pages + 1
+                                    if pages / pages_per_process > pages // pages_per_process
+                                    else pages, pages_per_process)]
             pool = Pool(processes=len(tasks))
             pool.map(self.process, tasks)
