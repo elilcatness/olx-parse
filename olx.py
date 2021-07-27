@@ -41,7 +41,7 @@ class Application:
         else:
             cookie_btn.click()
         output = {'Раздел': driver.find_elements_by_xpath(
-            '//li[@data-testid="breadcrumb-item"]')[-1].get_attribute('href')}
+            '//li[@data-testid="breadcrumb-item/a"]')[-1].get_attribute('href')}
         try:
             phone_show_btn = driver.find_element_by_xpath('//button[@data-testid="show-phone"]')
             phone_show_btn.click()
